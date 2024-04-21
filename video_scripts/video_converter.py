@@ -1,38 +1,59 @@
 import os
 import subprocess
+import logging
+from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
+
 
 class VideoConverter:
-    def __init__(self, output_dir, ffmpeg_path, video_format, output_video_format):
-        self.output_dir = output_dir
+    def __init__(self, output_dir, ffmpeg_path, output_video_format, input_video_format='mp4', video_bitrate='1000k'):
+        self.output_dir = Path(output_dir)
         self.ffmpeg_path = ffmpeg_path
-        self.video_format = video_format
+        self.input_video_format = input_video_format
         self.output_video_format = output_video_format
-        self.target_format = output_video_format
-        self.video_bitrate = '1000k'
+        self.video_bitrate = video_bitrate
+
+    def get_subdirectories(self):
+        try:
+            for d in self.output_dir.iterdir():
+                if d.is_dir():
+                    yield d
+        except FileNotFoundError as e:
+            logging.error(f"Directory not found: {e}")
+        except PermissionError as e:
+            logging.error(f"Permission denied: {e}")
 
     def convert_video(self):
-        # Get a list of all subdirectories in the output directory
-        subdirectories = [d for d in os.listdir(self.output_dir) if os.path.isdir(os.path.join(self.output_dir, d))]
+        try:
+            with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
+                for i, subdir in enumerate(self.get_subdirectories()):
+                    input_file = self.output_dir / f'input_video_{i}' / f'input_video.{self.input_video_format}'
+                    if not input_file.exists():
+                        logging.error(f"Input file does not exist: {input_file}")
+                        continue
 
-        for i, subdir in enumerate(subdirectories):
-            # Full path to the source video file
-            input_file = os.path.join(self.output_dir, f'input_video_{i}/input_video.{self.video_format}')
-            # Create a directory for the converted file
-            destination_dir = os.path.join(self.output_dir, f'input_conv_video_{i}')
-            os.makedirs(destination_dir, exist_ok=True)
-            # Full path to the output file
-            output_file = os.path.join(destination_dir, f'converted_video.{self.output_video_format}')
+                    destination_dir = self.output_dir / f'input_converted_video_{i}'
+                    destination_dir.mkdir(parents=True, exist_ok=True)
+                    output_file = destination_dir / f'converted_video.{self.output_video_format}'
 
-            # Command for conversion
-            command = [
-                self.ffmpeg_path,
-                '-i', input_file,
-                '-b:v', self.video_bitrate,
-                output_file
-            ]
+                    command = [
+                        self.ffmpeg_path,
+                        '-i', str(input_file),
+                        '-b:v', self.video_bitrate,
+                        str(output_file)
+                    ]
 
-            try:
-                subprocess.run(command, check=True)
-                print(f'File {input_file} successfully converted to {output_file}')
-            except subprocess.CalledProcessError as e:
-                print(f'Error converting file {input_file}: {e}')
+                    logging.info(f'Starting conversion of {input_file} to {output_file}')
+                    executor.submit(self.run_command, command, input_file, output_file)
+        except Exception as e:
+            logging.error(f"An error occurred: {e}")
+
+    @staticmethod
+    def run_command(command, input_file, output_file):
+        try:
+            subprocess.run(command, check=True)
+            logging.info(f'File {input_file} successfully converted to {output_file}')
+        except subprocess.CalledProcessError as e:
+            logging.error(f'Error converting file {input_file}: {e}')
+        except PermissionError as e:
+            logging.error(f'Permission denied: {e}')
