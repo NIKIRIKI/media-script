@@ -1,90 +1,79 @@
-import os
 import subprocess
 import json
 from vosk import Model, KaldiRecognizer
 from tqdm import tqdm
+from pathlib import Path
+import concurrent.futures
+import logging
+
 
 class AudioToTextConverter:
     def __init__(self, output_dir, ffmpeg_path, audio_format, model_path):
-        self.output_dir = output_dir
+        self.output_dir = Path(output_dir)
         self.ffmpeg_path = ffmpeg_path
         self.audio_format = audio_format
         self.model_path = model_path
 
     def convert_audio_to_text(self):
-        # Check if the ffmpeg executable exists
-        if not os.path.exists(self.ffmpeg_path):
-            print(f"ffmpeg executable not found at {self.ffmpeg_path}. Please check the path.")
+        if not Path(self.ffmpeg_path).exists():
+            logging.error(f"ffmpeg executable not found at {self.ffmpeg_path}. Please check the path.")
             return
 
-        # Load Vosk model
-        if not os.path.exists(self.model_path):
-            print(f"Vosk model not found at {self.model_path}. Please check the path.")
+        if not Path(self.model_path).exists():
+            logging.error(f"Vosk model not found at {self.model_path}. Please check the path.")
             return
         model = Model(self.model_path)
 
-        # Get a list of all directories in the output directory
-        directories = [d for d in os.listdir(self.output_dir) if os.path.isdir(os.path.join(self.output_dir, d)) and d.startswith('input_audio_')]
+        directories = [d for d in self.output_dir.iterdir() if d.is_dir() and d.name.startswith('input_audio_')]
 
-        # Initialize progress bar
-        pbar = tqdm(total=len(directories), ncols=70)
+        with tqdm(total=len(directories), ncols=70) as pbar:
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                futures = {executor.submit(self.process_directory, d, model): d for d in directories}
+                for future in concurrent.futures.as_completed(futures):
+                    pbar.update(1)
 
-        for directory in directories:
-            # Full path to the source audio file
-            input_file = os.path.join(self.output_dir, directory, f'input_audio.{self.audio_format}')
-            
-            # Check if the input file exists
-            if not os.path.exists(input_file):
-                print(f"File {input_file} does not exist. Skipping...")
-                continue
+    def process_directory(self, directory, model):
+        input_file = directory / f'input_audio.{self.audio_format}'
+        if not input_file.exists():
+            logging.error(f"File {input_file} does not exist. Skipping...")
+            return
 
-            # If the audio is not in wav format, convert it to wav
-            if self.audio_format != 'wav':
-                wav_file = input_file.rsplit('.', 1)[0] + '.wav'
-                command = [
-                    self.ffmpeg_path,
-                    '-i', input_file,
-                    '-ac', '1',  # Make it mono channel
-                    '-ar', '44000',  # Set sample rate to 16000 Hz
-                    wav_file
-                ]
-                try:
-                    subprocess.run(command, check=True)
-                    print(f'File {input_file} successfully converted to {wav_file}')
-                except subprocess.CalledProcessError as e:
-                    print(f'Error converting file {input_file} to wav: {e}')
-                    continue
-                input_file = wav_file
+        if self.audio_format != 'wav':
+            wav_file = input_file.with_suffix('.wav')
+            command = [
+                self.ffmpeg_path,
+                '-i', str(input_file),
+                '-ac', '1',
+                '-ar', '44000',
+                str(wav_file)
+            ]
+            try:
+                subprocess.run(command, check=True)
+                logging.info(f'File {input_file} successfully converted to {wav_file}')
+            except subprocess.CalledProcessError as e:
+                logging.error(f'Error converting file {input_file} to wav: {e}', exc_info=True)
+                return
+            input_file = wav_file
 
-            # Convert audio to text using Vosk
-            recognizer = KaldiRecognizer(model, 16000)
-            text = ""
-            with open(input_file, 'rb') as f:
-                while True:
-                    data = f.read(4000)
-                    if len(data) == 0:
-                        break
-                    if recognizer.AcceptWaveform(data):
-                        result = json.loads(recognizer.Result())
-                        text += result['text'] + " "
-                result = json.loads(recognizer.FinalResult())
-                text += result['text']
+        recognizer = KaldiRecognizer(model, 16000)
+        text = ""
+        with open(input_file, 'rb') as f:
+            while True:
+                data = f.read(4000)
+                if len(data) == 0:
+                    break
+                if recognizer.AcceptWaveform(data):
+                    result = json.loads(recognizer.Result())
+                    text += result['text'] + " "
+            result = json.loads(recognizer.FinalResult())
+            text += result['text']
 
-            # Create the destination directory
-            destination_dir = os.path.join(self.output_dir, f'input_text_transcribed_{directory.split("_")[-1]}')
-            os.makedirs(destination_dir, exist_ok=True)
+        destination_dir = self.output_dir / f'input_text_transcribed_{directory.name.split("_")[-1]}'
+        destination_dir.mkdir(parents=True, exist_ok=True)
 
-            # Full path to the destination file
-            output_file = os.path.join(destination_dir, 'transcription.txt')
+        output_file = destination_dir / 'transcription.txt'
 
-            # Save the transcribed text to the output file
-            with open(output_file, 'w') as f:
-                f.write(text)
+        with open(output_file, 'w') as f:
+            f.write(text)
 
-            print(f'Transcription from {input_file} successfully saved to {output_file}')
-
-            # Update progress bar
-            pbar.update(1)
-
-        # Close progress bar
-        pbar.close()
+        logging.info(f'Transcription from {input_file} successfully saved to {output_file}')
