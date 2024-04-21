@@ -1,63 +1,67 @@
-import os
 import subprocess
 import speech_recognition as sr
 from tqdm import tqdm
+from pathlib import Path
+import concurrent.futures
+import logging
+
 
 class AudioToTextConverter:
     def __init__(self, output_dir, ffmpeg_path, audio_format):
-        self.output_dir = output_dir
+        self.output_dir = Path(output_dir)
         self.ffmpeg_path = ffmpeg_path
         self.audio_format = audio_format
 
     def convert_audio_to_text(self):
-        if not os.path.exists(self.ffmpeg_path):
-            print(f"ffmpeg executable not found at {self.ffmpeg_path}. Please check the path.")
+        if not Path(self.ffmpeg_path).exists():
+            logging.error(f"ffmpeg executable not found at {self.ffmpeg_path}. Please check the path.")
             return
 
-        directories = [d for d in os.listdir(self.output_dir) if os.path.isdir(os.path.join(self.output_dir, d)) and d.startswith('input_audio_')]
-        pbar = tqdm(total=len(directories), ncols=70)
+        directories = [d for d in self.output_dir.iterdir() if d.is_dir() and d.name.startswith('input_audio_')]
 
-        for directory in directories:
-            input_file = os.path.join(self.output_dir, directory, f'input_audio.{self.audio_format}')
-            
-            if not os.path.exists(input_file):
-                print(f"File {input_file} does not exist. Skipping...")
-                continue
+        with tqdm(total=len(directories), ncols=70) as pbar:
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                futures = {executor.submit(self.process_directory, d): d for d in directories}
+                for future in concurrent.futures.as_completed(futures):
+                    pbar.update(1)
 
-            if self.audio_format != 'wav':
-                wav_file = input_file.rsplit('.', 1)[0] + '.wav'
-                command = [
-                    self.ffmpeg_path,
-                    '-i', input_file,
-                    '-ac', '2',
-                    '-ar', '44000',
-                    wav_file
-                ]
-                try:
-                    subprocess.run(command, check=True)
-                    print(f'File {input_file} successfully converted to {wav_file}')
-                except subprocess.CalledProcessError as e:
-                    print(f'Error converting file {input_file} to wav: {e}')
-                    continue
-                input_file = wav_file
+    def process_directory(self, directory):
+        input_file = directory / f'input_audio.{self.audio_format}'
+        if not input_file.exists():
+            logging.error(f"File {input_file} does not exist. Skipping...")
+            return
 
-            recognizer = sr.Recognizer()
-            with sr.AudioFile(input_file) as source:
-                audio_data = recognizer.record(source)
-                try:
-                    text = recognizer.recognize_google(audio_data, language='ru-RU')
-                except sr.RequestError as e:
-                    print(f"Could not request results from Google Speech Recognition service; {e}")
-                    continue
+        if self.audio_format != 'wav':
+            wav_file = input_file.with_suffix('.wav')
+            command = [
+                self.ffmpeg_path,
+                '-i', str(input_file),
+                '-ac', '2',
+                '-ar', '44000',
+                str(wav_file)
+            ]
+            try:
+                subprocess.run(command, check=True)
+                logging.info(f'File {input_file} successfully converted to {wav_file}')
+            except subprocess.CalledProcessError as e:
+                logging.error(f'Error converting file {input_file} to wav: {e}', exc_info=True)
+                return
+            input_file = wav_file
 
-            destination_dir = os.path.join(self.output_dir, f'input_text_transcribed_{directory.split("_")[-1]}')
-            os.makedirs(destination_dir, exist_ok=True)
-            output_file = os.path.join(destination_dir, 'transcription.txt')
+        recognizer = sr.Recognizer()
+        with sr.AudioFile(str(input_file)) as source:
+            audio_data = recognizer.record(source)
+            try:
+                text = recognizer.recognize_google(audio_data, language='ru-RU')
+            except sr.RequestError as e:
+                logging.error(f"Could not request results from Google Speech Recognition service; {e}")
+                return
 
-            with open(output_file, 'w') as f:
-                f.write(text)
+        destination_dir = self.output_dir / f'input_text_transcribed_{directory.name.split("_")[-1]}'
+        destination_dir.mkdir(parents=True, exist_ok=True)
+        output_file = destination_dir / 'transcription.txt'
 
-            print(f'Transcription from {input_file} successfully saved to {output_file}')
-            pbar.update(1)
+        with open(output_file, 'w') as f:
+            f.write(text)
 
-        pbar.close()
+        logging.info(f'Transcription from {input_file} successfully saved to {output_file}')
