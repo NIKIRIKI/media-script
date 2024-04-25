@@ -8,9 +8,8 @@ import ffmpeg
 
 
 class AudioToTextConverter:
-    def __init__(self, output_dir, audio_format, model_path):
+    def __init__(self, output_dir, model_path):
         self.output_dir = Path(output_dir)
-        self.audio_format = audio_format
         self.model_path = model_path
 
     def convert_audio_to_text(self):
@@ -28,12 +27,12 @@ class AudioToTextConverter:
                     pbar.update(1)
 
     def process_directory(self, directory, model):
-        input_file = directory / f'input_audio.{self.audio_format}'
+        input_file = next(directory.glob('input_audio.*'))
         if not input_file.exists():
             logging.error(f"File {input_file} does not exist. Skipping...")
             return
 
-        if self.audio_format != 'wav':
+        if input_file.suffix != '.wav':
             wav_file = input_file.with_suffix('.wav')
             try:
                 ffmpeg.input(str(input_file)).output(str(wav_file), ac=1, ar='44000').run()
