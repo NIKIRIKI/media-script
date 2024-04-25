@@ -4,9 +4,8 @@ import logging
 import concurrent.futures
 
 class VideoConverter:
-    def __init__(self, output_dir, video_format, output_video_format):
+    def __init__(self, output_dir, output_video_format):
         self.output_dir = Path(output_dir)
-        self.video_format = video_format
         self.output_video_format = output_video_format
 
     def convert_video(self):
@@ -16,7 +15,13 @@ class VideoConverter:
             executor.map(self.process_subdir, subdirectories)
 
     def process_subdir(self, subdir):
-        input_file = subdir / f'input_video.{self.video_format}'
+        input_files = list(subdir.glob('input_video.*'))
+
+        if not input_files:
+            logging.error(f'No input video file found in {subdir}')
+            return
+
+        input_file = input_files[0]
         destination_dir = self.output_dir / f'{subdir.name}_conv'
         destination_dir.mkdir(exist_ok=True)
         output_file = destination_dir / f'converted_video.{self.output_video_format}'
