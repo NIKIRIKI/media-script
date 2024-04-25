@@ -1,2 +1,13 @@
-pip install vosk
-pip install tqdm
+os
+logging
+pathlib
+concurrent.futures
+ffmpeg
+yt_dlp
+json
+vosk
+tqdm
+speech_recognition
+moviepy
+requests
+subprocess
