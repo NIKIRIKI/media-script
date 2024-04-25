@@ -6,9 +6,8 @@ from ffmpeg import input, output
 
 
 class VideoConverter:
-    def __init__(self, output_dir, output_video_format, input_video_format='mp4', video_bitrate='1000k'):
+    def __init__(self, output_dir, output_video_format, video_bitrate='1000k'):
         self.output_dir = Path(output_dir)
-        self.input_video_format = input_video_format
         self.output_video_format = output_video_format
         self.video_bitrate = video_bitrate
 
@@ -26,9 +25,9 @@ class VideoConverter:
         try:
             with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
                 for i, subdir in enumerate(self.get_subdirectories()):
-                    input_file = self.output_dir / f'input_video_{i}' / f'input_video.{self.input_video_format}'
-                    if not input_file.exists():
-                        logging.error(f"Input file does not exist: {input_file}")
+                    input_file = next(subdir.glob('*.*'), None)
+                    if not input_file:
+                        logging.error(f"No input file found in directory: {subdir}")
                         continue
 
                     destination_dir = self.output_dir / f'input_converted_video_{i}'
