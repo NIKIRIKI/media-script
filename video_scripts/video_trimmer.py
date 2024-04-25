@@ -2,10 +2,12 @@ import os
 import subprocess
 import ffmpeg
 import logging
+from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 
 class VideoCutter:
     def __init__(self, input_dir, interval, video_format):
-        self.input_dir = input_dir
+        self.input_dir = Path(input_dir)
         self.interval = self.converts_to_seconds(interval)
         self.video_format = video_format
 
@@ -14,33 +16,37 @@ class VideoCutter:
             h, m, s = map(int, interval_str.split(':'))
             return h * 3600 + m * 60 + s
         except ValueError:
-            raise ValueError(f"Invalid interval format: {interval_str}. Expected format: HH:MM:SS")
+            logging.error(f"Invalid interval format: {interval_str}. Expected format: HH:MM:SS")
 
     def get_video_duration(self, video_path):
         try:
             result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
                                      "format=duration", "-of",
-                                     "default=noprint_wrappers=1:nokey=1", video_path],
+                                     "default=noprint_wrappers=1:nokey=1", str(video_path)],
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT)
             return float(result.stdout)
         except Exception as e:
             logging.error(f"Error occurred while getting video duration for {video_path}: {e}")
-            raise
 
-    def cut_video(self):
-        for i in range(10):
-            video_dir = os.path.join(self.input_dir, f'input_video_{i}')
-            video_path = os.path.join(video_dir, f'input_video.{self.video_format}')
-            if not os.path.exists(video_path):
-                logging.error(f"Video path does not exist: {video_path}")
-                continue
-            duration = self.get_video_duration(video_path)
-            for j in range(0, int(duration), self.interval):
-                output_path = os.path.join(video_dir, f'video_cut_{j}.{self.video_format}')
-                try:
-                    ffmpeg.input(video_path).output(output_path, ss=j, t=self.interval, c='copy').run()
-                    logging.info(f"Video cut from {j} to {j+self.interval} seconds saved as {output_path}")
-                except ffmpeg.Error as e:
-                    logging.error(f"Error occurred while cutting video {video_path} from {j} to {j+self.interval} seconds: {e}")
-                    raise
+    def cut_video(self, video_path, video_dir):
+        if not video_path.exists():
+            logging.error(f"Video path does not exist: {video_path}")
+            return
+        duration = self.get_video_duration(video_path)
+        if duration is None:
+            return
+        for j in range(0, int(duration), self.interval):
+            output_path = video_dir / f'video_cut_{j}.{self.video_format}'
+            try:
+                ffmpeg.input(str(video_path)).output(str(output_path), ss=j, t=self.interval, c='copy').run()
+                logging.info(f"Video cut from {j} to {j+self.interval} seconds saved as {output_path}")
+            except ffmpeg.Error as e:
+                logging.error(f"Error occurred while cutting video {video_path} from {j} to {j+self.interval} seconds: {e}")
+
+    def process_videos(self):
+        with ThreadPoolExecutor() as executor:
+            for i in range(10):
+                video_dir = self.input_dir / f'input_video_{i}'
+                video_path = video_dir / f'input_video.{self.video_format}'
+                executor.submit(self.cut_video, video_path, video_dir)
