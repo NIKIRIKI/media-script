@@ -1,17 +1,14 @@
-import subprocess
-from pathlib import Path
 import concurrent.futures
 import logging
-import ffmpeg
+from pathlib import Path
+import yt_dlp
 
 
 class AudioDownloader:
-    def __init__(self, urls, output_dir, yt_dlp_path, audio_format='mp3', download_audio=True):
+    def __init__(self, urls, output_dir, audio_format='mp3'):
         self.urls = urls
         self.output_dir = Path(output_dir)
-        self.yt_dlp_path = yt_dlp_path
         self.audio_format = audio_format
-        self.download_audio_flag = download_audio
 
     def download_audio(self):
         with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -25,18 +22,18 @@ class AudioDownloader:
             self.download_audio_from_url(url, filename)
 
     def download_audio_from_url(self, url, filename):
-        command = [self.yt_dlp_path, url, '-x', '--audio-format', self.audio_format, '-o', str(filename)]
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'outtmpl': str(filename),
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': self.audio_format,
+                'preferredquality': '192',
+            }],
+        }
         try:
-            subprocess.run(command, check=True)
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
             logging.info(f'Successfully downloaded {url} to {filename}')
-            self.convert_to_audio_format(filename)
         except Exception as e:
             logging.error(f'Error downloading {url} to {filename}: {e}', exc_info=True)
-
-    def convert_to_audio_format(self, filename):
-        output_filename = f"{filename.stem}.{self.audio_format}"
-        try:
-            ffmpeg.input(filename).output(output_filename, format=self.audio_format).run()
-            logging.info(f'Successfully converted {filename} to {output_filename}')
-        except Exception as e:
-            logging.error(f'Error converting {filename} to {output_filename}: {e}', exc_info=True)
