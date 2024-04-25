@@ -1,14 +1,13 @@
 import os
-import subprocess
 import logging
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
+from ffmpeg import input, output
 
 
 class VideoConverter:
-    def __init__(self, output_dir, ffmpeg_path, output_video_format, input_video_format='mp4', video_bitrate='1000k'):
+    def __init__(self, output_dir, output_video_format, input_video_format='mp4', video_bitrate='1000k'):
         self.output_dir = Path(output_dir)
-        self.ffmpeg_path = ffmpeg_path
         self.input_video_format = input_video_format
         self.output_video_format = output_video_format
         self.video_bitrate = video_bitrate
@@ -36,24 +35,18 @@ class VideoConverter:
                     destination_dir.mkdir(parents=True, exist_ok=True)
                     output_file = destination_dir / f'converted_video.{self.output_video_format}'
 
-                    command = [
-                        self.ffmpeg_path,
-                        '-i', str(input_file),
-                        '-b:v', self.video_bitrate,
-                        str(output_file)
-                    ]
-
                     logging.info(f'Starting conversion of {input_file} to {output_file}')
-                    executor.submit(self.run_command, command, input_file, output_file)
+                    executor.submit(self.run_ffmpeg, input_file, output_file)
         except Exception as e:
             logging.error(f"An error occurred: {e}")
 
-    @staticmethod
-    def run_command(command, input_file, output_file):
+    def run_ffmpeg(self, input_file, output_file):
         try:
-            subprocess.run(command, check=True)
+            (
+                input(str(input_file))
+                .output(str(output_file), b=self.video_bitrate)
+                .run()
+            )
             logging.info(f'File {input_file} successfully converted to {output_file}')
-        except subprocess.CalledProcessError as e:
+        except Exception as e:
             logging.error(f'Error converting file {input_file}: {e}')
-        except PermissionError as e:
-            logging.error(f'Permission denied: {e}')
