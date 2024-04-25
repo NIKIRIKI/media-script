@@ -2,14 +2,14 @@ import subprocess
 from pathlib import Path
 import concurrent.futures
 import logging
+import ffmpeg
 
 
 class AudioDownloader:
-    def __init__(self, urls, output_dir, yt_dlp_path, ffmpeg_path, audio_format='mp3', download_audio=True):
+    def __init__(self, urls, output_dir, yt_dlp_path, audio_format='mp3', download_audio=True):
         self.urls = urls
         self.output_dir = Path(output_dir)
         self.yt_dlp_path = yt_dlp_path
-        self.ffmpeg_path = ffmpeg_path
         self.audio_format = audio_format
         self.download_audio_flag = download_audio
 
@@ -29,5 +29,14 @@ class AudioDownloader:
         try:
             subprocess.run(command, check=True)
             logging.info(f'Successfully downloaded {url} to {filename}')
+            self.convert_to_audio_format(filename)
         except Exception as e:
             logging.error(f'Error downloading {url} to {filename}: {e}', exc_info=True)
+
+    def convert_to_audio_format(self, filename):
+        output_filename = f"{filename.stem}.{self.audio_format}"
+        try:
+            ffmpeg.input(filename).output(output_filename, format=self.audio_format).run()
+            logging.info(f'Successfully converted {filename} to {output_filename}')
+        except Exception as e:
+            logging.error(f'Error converting {filename} to {output_filename}: {e}', exc_info=True)
