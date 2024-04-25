@@ -13,12 +13,16 @@ class VideoCutter:
         return h * 3600 + m * 60 + s
 
     def get_video_duration(self, video_path):
-        result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
-                                 "format=duration", "-of",
-                                 "default=noprint_wrappers=1:nokey=1", video_path],
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT)
-        return float(result.stdout)
+        try:
+            result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
+                                     "format=duration", "-of",
+                                     "default=noprint_wrappers=1:nokey=1", video_path],
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT)
+            return float(result.stdout)
+        except Exception as e:
+            print(f"Error occurred while getting video duration: {e}")
+            return 0
 
     def cut_video(self):
         for i in range(10):
@@ -27,4 +31,9 @@ class VideoCutter:
             duration = self.get_video_duration(video_path)
             for j in range(0, int(duration), self.interval):
                 output_path = os.path.join(video_dir, f'video_cut_{j}.{self.video_format}')
-                ffmpeg.input(video_path).output(output_path, ss=j, t=self.interval, c='copy').run()
+                try:
+                    ffmpeg.input(video_path).output(output_path, ss=j, t=self.interval, c='copy').run()
+                    print(f"Video cut from {j} to {j+self.interval} seconds saved as {output_path}")
+                except ffmpeg.Error as e:
+                    print(f"Error occurred while cutting video: {e}")
+
