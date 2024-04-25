@@ -1,24 +1,19 @@
-import subprocess
 import json
 from vosk import Model, KaldiRecognizer
 from tqdm import tqdm
 from pathlib import Path
 import concurrent.futures
 import logging
+import ffmpeg
 
 
 class AudioToTextConverter:
-    def __init__(self, output_dir, ffmpeg_path, audio_format, model_path):
+    def __init__(self, output_dir, audio_format, model_path):
         self.output_dir = Path(output_dir)
-        self.ffmpeg_path = ffmpeg_path
         self.audio_format = audio_format
         self.model_path = model_path
 
     def convert_audio_to_text(self):
-        if not Path(self.ffmpeg_path).exists():
-            logging.error(f"ffmpeg executable not found at {self.ffmpeg_path}. Please check the path.")
-            return
-
         if not Path(self.model_path).exists():
             logging.error(f"Vosk model not found at {self.model_path}. Please check the path.")
             return
@@ -40,17 +35,10 @@ class AudioToTextConverter:
 
         if self.audio_format != 'wav':
             wav_file = input_file.with_suffix('.wav')
-            command = [
-                self.ffmpeg_path,
-                '-i', str(input_file),
-                '-ac', '1',
-                '-ar', '44000',
-                str(wav_file)
-            ]
             try:
-                subprocess.run(command, check=True)
+                ffmpeg.input(str(input_file)).output(str(wav_file), ac=1, ar='44000').run()
                 logging.info(f'File {input_file} successfully converted to {wav_file}')
-            except subprocess.CalledProcessError as e:
+            except ffmpeg.Error as e:
                 logging.error(f'Error converting file {input_file} to wav: {e}', exc_info=True)
                 return
             input_file = wav_file
