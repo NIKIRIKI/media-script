@@ -1,34 +1,50 @@
 import os
-import subprocess
-from pathlib import Path
-import concurrent.futures
 import logging
+from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
+from ffmpeg import input, output
 
-
-class AudioDownloader:
-    def __init__(self, urls, output_dir, yt_dlp_path, ffmpeg_path, audio_format='mp3', download_audio=True):
-        self.urls = urls
+class AudioConverter:
+    def __init__(self, output_dir, output_audio_format, audio_bitrate='128k'):
         self.output_dir = Path(output_dir)
-        self.yt_dlp_path = yt_dlp_path
-        self.ffmpeg_path = ffmpeg_path
-        self.audio_format = audio_format
-        self.download_audio_flag = download_audio
+        self.output_audio_format = output_audio_format
+        self.audio_bitrate = audio_bitrate
 
-    def download_audio(self):
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            executor.map(self.process_url, self.urls, range(len(self.urls)))
-
-    def process_url(self, url, i):
-        audio_dir = self.output_dir / f'input_audio_{i}'
-        audio_dir.mkdir(parents=True, exist_ok=True)
-        filename = audio_dir / f'input_audio.{self.audio_format}'
-        if not filename.exists():
-            self.download_audio_from_url(url, filename)
-
-    def download_audio_from_url(self, url, filename):
-        command = [self.yt_dlp_path, url, '-x', '--audio-format', self.audio_format, '-o', str(filename)]
+    def get_subdirectories(self):
         try:
-            subprocess.run(command, check=True)
-            logging.info(f'Successfully downloaded {url} to {filename}')
+            for d in self.output_dir.iterdir():
+                if d.is_dir():
+                    yield d
+        except FileNotFoundError as e:
+            logging.error(f"Directory not found: {e}")
+        except PermissionError as e:
+            logging.error(f"Permission denied: {e}")
+
+    def convert_audio(self):
+        try:
+            with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
+                for i, subdir in enumerate(self.get_subdirectories()):
+                    input_file = next(subdir.glob('*.*'), None)
+                    if not input_file:
+                        logging.error(f"No input file found in directory: {subdir}")
+                        continue
+
+                    destination_dir = self.output_dir / f'input_converted_audio_{i}'
+                    destination_dir.mkdir(parents=True, exist_ok=True)
+                    output_file = destination_dir / f'converted_audio.{self.output_audio_format}'
+
+                    logging.info(f'Starting conversion of {input_file} to {output_file}')
+                    executor.submit(self.run_ffmpeg, input_file, output_file)
         except Exception as e:
-            logging.error(f'Error downloading {url} to {filename}: {e}', exc_info=True)
+            logging.error(f"An error occurred: {e}")
+
+    def run_ffmpeg(self, input_file, output_file):
+        try:
+            (
+                input(str(input_file))
+                .output(str(output_file), b=self.audio_bitrate)
+                .run()
+            )
+            logging.info(f'File {input_file} successfully converted to {output_file}')
+        except Exception as e:
+            logging.error(f'Error converting file {input_file}: {e}')
