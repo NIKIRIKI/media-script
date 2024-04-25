@@ -1,75 +1,30 @@
 import os
 import subprocess
-import logging
-from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor
+import ffmpeg
 
-
-class VideoTrimmer:
-    def __init__(self, urls, output_dir, ffmpeg_path, yt_dlp_path, interval=None, start_time=None, end_time=None,
-                 video_format='mp4'):
-        self.urls = urls
-        self.output_dir = Path(output_dir)
-        self.interval = self.convert_to_seconds(interval) if interval else None
-        self.start_time = self.convert_to_seconds(start_time) if start_time else None
-        self.end_time = self.convert_to_seconds(end_time) if end_time else None
-        self.ffmpeg_path = ffmpeg_path
-        self.yt_dlp_path = yt_dlp_path
+class VideoCutter:
+    def __init__(self, input_dir, interval, video_format):
+        self.input_dir = input_dir
+        self.interval = self.converts_to_seconds(interval)
         self.video_format = video_format
 
-        # Set up logging
-        logging.basicConfig(filename='video_trimmer.log', level=logging.INFO)
+    def converts_to_seconds(self, interval_str):
+        h, m, s = map(int, interval_str.split(':'))
+        return h * 3600 + m * 60 + s
 
-    @staticmethod
-    def convert_to_seconds(time_str):
-        try:
-            time_parts = list(map(int, time_str.split(':')))
-            if len(time_parts) == 3:
-                h, m, s = time_parts
-            elif len(time_parts) == 2:
-                h = 0
-                m, s = time_parts
-            else:
-                raise ValueError("Invalid time format")
-            return h * 3600 + m * 60 + s
-        except Exception as e:
-            logging.error(f"Error in convert_to_seconds: {str(e)}")
-            return None
+    def get_video_duration(self, video_path):
+        result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
+                                 "format=duration", "-of",
+                                 "default=noprint_wrappers=1:nokey=1", video_path],
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT)
+        return float(result.stdout)
 
-    def trim_videos(self):
-        try:
-            with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
-                for i, url in enumerate(self.urls):
-                    url_dir = self.output_dir / f'input_video_{i}'
-                    filename = url_dir / f'input_video.{self.video_format}'
-                    if filename.exists():
-                        executor.submit(self.trim_video, filename, url)
-        except Exception as e:
-            logging.error(f"Error in trim_videos: {str(e)}")
-
-    def trim_video(self, filename, url):
-        try:
-            command = [self.yt_dlp_path, url, '--get-duration']
-            video_length = subprocess.check_output(command).decode().strip()
-            video_length = self.convert_to_seconds(video_length)
-
-            if self.interval:
-                for i in range(0, video_length, self.interval):
-                    start_time = i
-                    end_time = min(i + self.interval, video_length)
-                    self.edit_video(filename, start_time, end_time, i // self.interval)
-            elif self.start_time is not None and self.end_time is not None:
-                self.edit_video(filename, self.start_time, self.end_time, 0)
-        except Exception as e:
-            logging.error(f"Error in trim_video: {str(e)}")
-
-    def edit_video(self, filename, start_time, end_time, i):
-        try:
-            url_dir = filename.parent
-            output_filename = url_dir / f"output_{i}.{self.video_format}"
-            command = [self.ffmpeg_path, '-i', str(filename), '-ss', str(start_time), '-to', str(end_time), '-c',
-                       'copy',
-                       '-map_metadata', '-1', str(output_filename)]
-            subprocess.run(command, check=True)
-        except Exception as e:
-            logging.error(f"Error in edit_video: {str(e)}")
+    def cut_video(self):
+        for i in range(10):
+            video_dir = os.path.join(self.input_dir, f'input_video_{i}')
+            video_path = os.path.join(video_dir, f'input_video.{self.video_format}')
+            duration = self.get_video_duration(video_path)
+            for j in range(0, int(duration), self.interval):
+                output_path = os.path.join(video_dir, f'video_cut_{j}.{self.video_format}')
+                ffmpeg.input(video_path).output(output_path, ss=j, t=self.interval, c='copy').run()
