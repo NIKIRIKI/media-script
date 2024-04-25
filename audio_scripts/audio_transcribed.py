@@ -1,22 +1,15 @@
-import subprocess
 import speech_recognition as sr
 from tqdm import tqdm
 from pathlib import Path
 import concurrent.futures
 import logging
-
+import ffmpeg
 
 class AudioToTextConverter:
-    def __init__(self, output_dir, ffmpeg_path, audio_format):
+    def __init__(self, output_dir):
         self.output_dir = Path(output_dir)
-        self.ffmpeg_path = ffmpeg_path
-        self.audio_format = audio_format
 
     def convert_audio_to_text(self):
-        if not Path(self.ffmpeg_path).exists():
-            logging.error(f"ffmpeg executable not found at {self.ffmpeg_path}. Please check the path.")
-            return
-
         directories = [d for d in self.output_dir.iterdir() if d.is_dir() and d.name.startswith('input_audio_')]
 
         with tqdm(total=len(directories), ncols=70) as pbar:
@@ -26,24 +19,18 @@ class AudioToTextConverter:
                     pbar.update(1)
 
     def process_directory(self, directory):
-        input_file = directory / f'input_audio.{self.audio_format}'
+        input_file = next(directory.glob('input_audio.*'))
         if not input_file.exists():
             logging.error(f"File {input_file} does not exist. Skipping...")
             return
 
-        if self.audio_format != 'wav':
+        audio_format = input_file.suffix.lstrip('.')
+        if audio_format != 'wav':
             wav_file = input_file.with_suffix('.wav')
-            command = [
-                self.ffmpeg_path,
-                '-i', str(input_file),
-                '-ac', '2',
-                '-ar', '44000',
-                str(wav_file)
-            ]
             try:
-                subprocess.run(command, check=True)
+                ffmpeg.input(str(input_file)).output(str(wav_file), ac=2, ar='44000').run()
                 logging.info(f'File {input_file} successfully converted to {wav_file}')
-            except subprocess.CalledProcessError as e:
+            except ffmpeg.Error as e:
                 logging.error(f'Error converting file {input_file} to wav: {e}', exc_info=True)
                 return
             input_file = wav_file
