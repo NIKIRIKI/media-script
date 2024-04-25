@@ -1,12 +1,10 @@
 import os
-import requests
-import subprocess
+import yt_dlp
 
 class ThumbnailDownloader:
-    def __init__(self, urls, output_dir, yt_dlp_path):
+    def __init__(self, urls, output_dir):
         self.urls = urls
         self.output_dir = output_dir
-        self.yt_dlp_path = yt_dlp_path
 
     def download_content(self):
         try:
@@ -25,10 +23,12 @@ class ThumbnailDownloader:
 
     def download_thumbnail(self, url, url_dir):
         try:
-            command = [self.yt_dlp_path, url, '--get-thumbnail']
-            thumbnail_url = subprocess.check_output(command).decode().strip()
-            response = requests.get(thumbnail_url)
-            with open(os.path.join(url_dir, 'input_preview.jpg'), 'wb') as f:
-                f.write(response.content)
+            ydl_opts = {
+                'outtmpl': os.path.join(url_dir, 'input_preview.jpg'),
+                'writethumbnail': True,
+                'skip_download': True,
+            }
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
         except Exception as e:
             print(f"Error in download_thumbnail: {str(e)}")
