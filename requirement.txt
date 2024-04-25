@@ -2,7 +2,7 @@ os
 logging
 pathlib
 concurrent.futures
-ffmpeg
+ffmpeg-python
 yt_dlp
 json
 vosk
