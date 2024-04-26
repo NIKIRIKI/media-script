@@ -5,14 +5,14 @@ from concurrent.futures import ThreadPoolExecutor
 from ffmpeg import input, output
 
 class AudioConverter:
-    def __init__(self, output_dir, output_audio_format, audio_bitrate='128k'):
-        self.output_dir = Path(output_dir)
+    def __init__(self, input_dir, output_audio_format, audio_bitrate='128k'):
+        self.input_dir = Path(input_dir)
         self.output_audio_format = output_audio_format
         self.audio_bitrate = audio_bitrate
 
     def get_subdirectories(self):
         try:
-            for d in self.output_dir.iterdir():
+            for d in self.input_dir.iterdir():
                 if d.is_dir():
                     yield d
         except FileNotFoundError as e:
@@ -29,7 +29,7 @@ class AudioConverter:
                         logging.error(f"No input file found in directory: {subdir}")
                         continue
 
-                    destination_dir = self.output_dir / f'input_converted_audio_{i}'
+                    destination_dir = self.input_dir / f'input_converted_audio_{i}'
                     destination_dir.mkdir(parents=True, exist_ok=True)
                     output_file = destination_dir / f'converted_audio.{self.output_audio_format}'
 
