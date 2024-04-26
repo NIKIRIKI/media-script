@@ -6,11 +6,11 @@ import logging
 import ffmpeg
 
 class AudioToTextConverter:
-    def __init__(self, output_dir):
-        self.output_dir = Path(output_dir)
+    def __init__(self, input_dir):
+        self.input_dir = Path(input_dir)
 
     def convert_audio_to_text(self):
-        directories = [d for d in self.output_dir.iterdir() if d.is_dir() and d.name.startswith('input_audio_')]
+        directories = [d for d in self.input_dir.iterdir() if d.is_dir() and d.name.startswith('input_audio_')]
 
         with tqdm(total=len(directories), ncols=70) as pbar:
             with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -44,7 +44,7 @@ class AudioToTextConverter:
                 logging.error(f"Could not request results from Google Speech Recognition service; {e}")
                 return
 
-        destination_dir = self.output_dir / f'input_text_transcribed_{directory.name.split("_")[-1]}'
+        destination_dir = self.input_dir / f'input_text_transcribed_{directory.name.split("_")[-1]}'
         destination_dir.mkdir(parents=True, exist_ok=True)
         output_file = destination_dir / 'transcription.txt'
 
