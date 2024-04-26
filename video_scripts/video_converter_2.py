@@ -4,12 +4,12 @@ import logging
 import concurrent.futures
 
 class VideoConverter:
-    def __init__(self, output_dir, output_video_format):
-        self.output_dir = Path(output_dir)
+    def __init__(self, input_dir, output_video_format):
+        self.input_dir = Path(input_dir)
         self.output_video_format = output_video_format
 
     def convert_video(self):
-        subdirectories = [d for d in self.output_dir.iterdir() if d.is_dir()]
+        subdirectories = [d for d in self.input_dir.iterdir() if d.is_dir()]
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(self.process_subdir, subdirectories)
@@ -22,7 +22,7 @@ class VideoConverter:
             return
 
         input_file = input_files[0]
-        destination_dir = self.output_dir / f'{subdir.name}_conv'
+        destination_dir = self.input_dir / f'{subdir.name}_conv'
         destination_dir.mkdir(exist_ok=True)
         output_file = destination_dir / f'converted_video.{self.output_video_format}'
 
