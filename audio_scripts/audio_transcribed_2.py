@@ -8,8 +8,8 @@ import ffmpeg
 
 
 class AudioToTextConverter:
-    def __init__(self, output_dir, model_path):
-        self.output_dir = Path(output_dir)
+    def __init__(self, input_dir, model_path):
+        self.input_dir = Path(input_dir)
         self.model_path = model_path
 
     def convert_audio_to_text(self):
@@ -18,7 +18,7 @@ class AudioToTextConverter:
             return
         model = Model(self.model_path)
 
-        directories = [d for d in self.output_dir.iterdir() if d.is_dir() and d.name.startswith('input_audio_')]
+        directories = [d for d in self.input_dir.iterdir() if d.is_dir() and d.name.startswith('input_audio_')]
 
         with tqdm(total=len(directories), ncols=70) as pbar:
             with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -55,7 +55,7 @@ class AudioToTextConverter:
             result = json.loads(recognizer.FinalResult())
             text += result['text']
 
-        destination_dir = self.output_dir / f'input_text_transcribed_{directory.name.split("_")[-1]}'
+        destination_dir = self.input_dir / f'input_text_transcribed_{directory.name.split("_")[-1]}'
         destination_dir.mkdir(parents=True, exist_ok=True)
 
         output_file = destination_dir / 'transcription.txt'
