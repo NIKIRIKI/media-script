@@ -16,40 +16,40 @@ def main():
     start_time = None
     end_time = None
     interval = "00:00:20"
-    output_dir = "..."
+    input_dir = "..."
     urls = ["...", "..."]
 
     model_path = "..."
 
-    # Загрузчик видео vd1. Принимает параметры urls - ссылки на видео и output_dir - директория для сохранения видео.
+    # Загрузчик видео vd1. Принимает параметры urls - ссылки на видео и input_dir - директория для сохранения видео.
     # Если не работает первый загрузчик видео, то поменяйте vd1 на vd2
-    # video_downloader = vd1(urls=urls, output_dir=output_dir)
+    # video_downloader = vd1(urls=urls, input_dir=input_dir)
     # video_downloader.download_videos()
 
-    # Триммер видео vd1. Принимает параметры urls - ссылки на видео и output_dir - директория для сохранения видео.
+    # Триммер видео vd1. Принимает параметры urls - ссылки на видео и input_dir - директория для сохранения видео.
     # Если не работает первый загрузчик видео, то поменяйте vd1 на vd2
-    # video_trimmer = vcut(input_dir=output_dir, interval=interval)
+    # video_trimmer = vcut(input_dir=input_dir, interval=interval)
     # video_trimmer.process_videos()
 
-    # video_converter = vc1(output_dir=output_dir, output_video_format="mp4")
+    # video_converter = vc1(input_dir=input_dir, output_video_format="mp4")
     # video_converter.convert_video()
 
-    # video_converter = vc2(output_dir=output_dir, output_video_format="mp4")
+    # video_converter = vc2(input_dir=input_dir, output_video_format="mp4")
     # video_converter.convert_video()
 
-    audio_downloader = ad(output_dir=output_dir, urls=urls)
+    audio_downloader = ad(input_dir=input_dir, urls=urls)
     audio_downloader.download_audio()
 
-    audio_trimmer = acut(input_dir=output_dir, interval=interval, start_time="00:00:00", end_time="00:00:10")
+    audio_trimmer = acut(input_dir=input_dir, interval=interval, start_time="00:00:00", end_time="00:00:10")
     audio_trimmer.process_audios()
 
-    # audio_transcribed = atc1(output_dir=output_dir)
+    # audio_transcribed = atc1(input_dir=input_dir)
     # audio_transcribed.convert_audio_to_text()
 
-    # text_description = vdd(output_dir=output_dir, urls=urls)
+    # text_description = vdd(input_dir=input_dir, urls=urls)
     # text_description.download_all_descriptions()
 
-    # image_preview = td(output_dir=output_dir, urls=urls)
+    # image_preview = td(input_dir=input_dir, urls=urls)
     # image_preview.download_content()
 
     
