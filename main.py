@@ -52,13 +52,11 @@ def main():
     # audio_transcribed = atc1(input_dir=input_dir)
     # audio_transcribed.convert_audio_to_text()
 
-    # Загрузчик текста vdd. Принимает параметры 
-input_dir - директория для сохранения текстовой информации о видео, urls - ссылки на видеоматериалы.
+    # Загрузчик текста vdd. Принимает параметры input_dir - директория для сохранения текстовой информации о видео, urls - ссылки на видеоматериалы.
     # text_description = vdd(input_dir=input_dir, urls=urls)
     # text_description.download_all_descriptions()
 
-    # Загрузчик превью td. Принимает параметры 
-input_dir - директория для сохранения изображения, urls - ссылки на видеоматериалы.
+    # Загрузчик превью td. Принимает параметры input_dir - директория для сохранения изображения, urls - ссылки на видеоматериалы.
     # image_preview = td(input_dir=input_dir, urls=urls)
     # image_preview.download_content()
 
