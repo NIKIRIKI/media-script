@@ -60,8 +60,6 @@ def main():
     # image_preview = td(input_dir=input_dir, urls=urls)
     # image_preview.download_content()
 
-    
-
 
 if __name__ == "__main__":
     main()
