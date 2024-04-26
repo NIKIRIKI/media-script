@@ -2,9 +2,9 @@ import os
 import yt_dlp
 
 class ThumbnailDownloader:
-    def __init__(self, urls, output_dir):
+    def __init__(self, urls, input_dir):
         self.urls = urls
-        self.output_dir = output_dir
+        self.input_dir = input_dir
 
     def download_content(self):
         try:
@@ -15,7 +15,7 @@ class ThumbnailDownloader:
 
     def download_url_content(self, url, i):
         try:
-            url_dir = os.path.join(self.output_dir, f'input_preview_{i}')
+            url_dir = os.path.join(self.input_dir, f'input_preview_{i}')
             os.makedirs(url_dir, exist_ok=True)
             self.download_thumbnail(url, url_dir)
         except Exception as e:
