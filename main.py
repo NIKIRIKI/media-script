@@ -13,40 +13,52 @@ from text_scripts.get_description import VideoDescriptionDownloader as vdd
 
 
 def main():
-    interval = "00:00:20" # Интервал для обрезки аудио/видео в формате "hh:mm:ss".(Обрезает целое видео на несколько маленьких кусочков)
-    input_dir = "..." # Путь к директории для сохранения результатов
-    urls = ["...", "..."] # Ссылки на видео
+    interval = "00:00:20" # Интервал для обрезки аудио/видео в формате "hh:mm:ss".(Обрезает целое видео на несколько маленьких кусочков).
+    input_dir = "..." # Путь к директории для сохранения результатов.
+    urls = ["...", "..."] # Ссылки на видео.
 
-    model_path = "..." # Путь к языковым моделей для работы аудио транскрибатора (atc2)
+    model_path = "..." # Путь к языковым моделям vosk для работы аудио транскрибатора (atc2).
 
     # Загрузчик видео vd1. Принимает параметры urls - ссылки на видео и input_dir - директория для сохранения видео.
-    # Если не работает первый загрузчик видео, то поменяйте vd1 на vd2
+    # Если не работает первый загрузчик видео, то поменяйте vd1 на vd2.
     # video_downloader = vd1(urls=urls, input_dir=input_dir)
     # video_downloader.download_videos()
 
-    # Триммер видео vd1. Принимает параметры input_dir - директория для сохранения видео, interval - интервал для обрезки аудио/видео в формате "hh:mm:ss".
-    # Если нужен только 1 кусок видео, то добавьте в класс vcut параметры start_time = "hh:mm:ss" (начало кадра для обрезки видео) и end_time = "hh:mm:ss" (конец кадра для обрезки видео) 
+    # Триммер видео vcut. Принимает параметры input_dir - директория для обрезки видео, interval - интервал для обрезки аудио/видео в формате "hh:mm:ss".
+    # Если нужен только 1 кусок видео, то добавьте в класс vcut параметры start_time = "hh:mm:ss" (начало кадра для обрезки видео) и end_time = "hh:mm:ss" (конец кадра для обрезки видео).
+    # Для работы нужно предварительно скачать видеоматериал через загрузчик видео vd1 или vd2.
     # video_trimmer = vcut(input_dir=input_dir, interval=interval)
     # video_trimmer.process_videos()
 
+    # Конвертер видео vc1. Принимает параметры input_dir - директория для конвертации видео, output_video_format - формат для конвертации видео. 
+    # Для работы нужно предварительно скачать видеоматериал через загрузчик видео vd1 или vd2.
+    # Если не работает первый загрузчик видео, то поменяйте vc1 на vc2.
     # video_converter = vc1(input_dir=input_dir, output_video_format="mp4")
     # video_converter.convert_video()
 
-    # video_converter = vc2(input_dir=input_dir, output_video_format="mp4")
-    # video_converter.convert_video()
-
-    audio_downloader = ad(input_dir=input_dir, urls=urls)
+    # Загрузчик аудио ad. Принимает параметры urls - ссылки на аудио и input_dir - директория для сохранения аудио.
+    # audio_downloader = ad(input_dir=input_dir, urls=urls)
     audio_downloader.download_audio()
 
-    audio_trimmer = acut(input_dir=input_dir, interval=interval, start_time="00:00:00", end_time="00:00:10")
+    # Триммер аудио acut. Принимает параметры input_dir - директория для обрезки аудио, interval - интервал для обрезки аудио/видео в формате "hh:mm:ss".
+    # Если нужен только 1 кусок аудио, то добавьте в класс acut параметры start_time = "hh:mm:ss" (начало кадра для обрезки аудио) и end_time = "hh:mm:ss" (конец кадра для обрезки аудио).
+    # Для работы нужно предварительно скачать аудиоматериал через загрузчик аудио ad.
+    # audio_trimmer = acut(input_dir=input_dir, interval=interval)
     audio_trimmer.process_audios()
 
+    # Транскрибатор аудио atc1. Принимает параметры input_dir - директория для транскрибации аудио.
+    # Для работы нужно предварительно скачать аудиоматериал через загрузчик аудио ad.
+    # Если не работает первый транскрибатор аудио, то поменяйте atc1 на atc2. Также в классе atc2 добавьте параметр model_path - Путь к языковым моделям vosk для работы аудио транскрибатора (atc2).
     # audio_transcribed = atc1(input_dir=input_dir)
     # audio_transcribed.convert_audio_to_text()
 
+    # Загрузчик текста vdd. Принимает параметры 
+input_dir - директория для сохранения текстовой информации о видео, urls - ссылки на видеоматериалы.
     # text_description = vdd(input_dir=input_dir, urls=urls)
     # text_description.download_all_descriptions()
 
+    # Загрузчик превью td. Принимает параметры 
+input_dir - директория для сохранения изображения, urls - ссылки на видеоматериалы.
     # image_preview = td(input_dir=input_dir, urls=urls)
     # image_preview.download_content()
 
