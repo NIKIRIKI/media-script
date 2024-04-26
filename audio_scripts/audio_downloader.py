@@ -5,9 +5,9 @@ import yt_dlp
 
 
 class AudioDownloader:
-    def __init__(self, urls, output_dir, audio_format='mp3'):
+    def __init__(self, urls, input_dir, audio_format='mp3'):
         self.urls = urls
-        self.output_dir = Path(output_dir)
+        self.input_dir = Path(input_dir)
         self.audio_format = audio_format
 
     def download_audio(self):
@@ -15,7 +15,7 @@ class AudioDownloader:
             executor.map(self.process_url, self.urls, range(len(self.urls)))
 
     def process_url(self, url, i):
-        audio_dir = self.output_dir / f'input_audio_{i}'
+        audio_dir = self.input_dir / f'input_audio_{i}'
         audio_dir.mkdir(parents=True, exist_ok=True)
         filename = audio_dir / f'input_audio.{self.audio_format}'
         if not filename.exists():
