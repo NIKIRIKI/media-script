@@ -38,13 +38,13 @@ def main():
 
     # Загрузчик аудио ad. Принимает параметры urls - ссылки на аудио и input_dir - директория для сохранения аудио.
     # audio_downloader = ad(input_dir=input_dir, urls=urls)
-    audio_downloader.download_audio()
+    # audio_downloader.download_audio()
 
     # Триммер аудио acut. Принимает параметры input_dir - директория для обрезки аудио, interval - интервал для обрезки аудио/видео в формате "hh:mm:ss".
     # Если нужен только 1 кусок аудио, то добавьте в класс acut параметры start_time = "hh:mm:ss" (начало кадра для обрезки аудио) и end_time = "hh:mm:ss" (конец кадра для обрезки аудио).
     # Для работы нужно предварительно скачать аудиоматериал через загрузчик аудио ad.
     # audio_trimmer = acut(input_dir=input_dir, interval=interval)
-    audio_trimmer.process_audios()
+    # audio_trimmer.process_audios()
 
     # Транскрибатор аудио atc1. Принимает параметры input_dir - директория для транскрибации аудио.
     # Для работы нужно предварительно скачать аудиоматериал через загрузчик аудио ad.
@@ -54,7 +54,7 @@ def main():
 
     # Загрузчик текста vdd. Принимает параметры input_dir - директория для сохранения текстовой информации о видео, urls - ссылки на видеоматериалы.
     # text_description = vdd(input_dir=input_dir, urls=urls)
-    # text_description.download_all_descriptions()
+       #text_description.download_all_descriptions()
 
     # Загрузчик превью td. Принимает параметры input_dir - директория для сохранения изображения, urls - ссылки на видеоматериалы.
     # image_preview = td(input_dir=input_dir, urls=urls)
