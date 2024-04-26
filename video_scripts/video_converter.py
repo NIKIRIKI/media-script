@@ -6,14 +6,14 @@ from ffmpeg import input, output
 
 
 class VideoConverter:
-    def __init__(self, output_dir, output_video_format, video_bitrate='1000k'):
-        self.output_dir = Path(output_dir)
+    def __init__(self, input_dir, output_video_format, video_bitrate='1000k'):
+        self.input_dir = Path(input_dir)
         self.output_video_format = output_video_format
         self.video_bitrate = video_bitrate
 
     def get_subdirectories(self):
         try:
-            for d in self.output_dir.iterdir():
+            for d in self.input_dir.iterdir():
                 if d.is_dir():
                     yield d
         except FileNotFoundError as e:
@@ -30,7 +30,7 @@ class VideoConverter:
                         logging.error(f"No input file found in directory: {subdir}")
                         continue
 
-                    destination_dir = self.output_dir / f'input_converted_video_{i}'
+                    destination_dir = self.input_dir / f'input_converted_video_{i}'
                     destination_dir.mkdir(parents=True, exist_ok=True)
                     output_file = destination_dir / f'converted_video.{self.output_video_format}'
 
