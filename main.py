@@ -13,21 +13,19 @@ from text_scripts.get_description import VideoDescriptionDownloader as vdd
 
 
 def main():
-    start_time = None
-    end_time = None
-    interval = "00:00:20"
-    input_dir = "..."
-    urls = ["...", "..."]
+    interval = "00:00:20" # Интервал для обрезки аудио/видео в формате "hh:mm:ss".(Обрезает целое видео на несколько маленьких кусочков)
+    input_dir = "..." # Путь к директории для сохранения результатов
+    urls = ["...", "..."] # Ссылки на видео
 
-    model_path = "..."
+    model_path = "..." # Путь к языковым моделей для работы аудио транскрибатора (atc2)
 
     # Загрузчик видео vd1. Принимает параметры urls - ссылки на видео и input_dir - директория для сохранения видео.
     # Если не работает первый загрузчик видео, то поменяйте vd1 на vd2
     # video_downloader = vd1(urls=urls, input_dir=input_dir)
     # video_downloader.download_videos()
 
-    # Триммер видео vd1. Принимает параметры urls - ссылки на видео и input_dir - директория для сохранения видео.
-    # Если не работает первый загрузчик видео, то поменяйте vd1 на vd2
+    # Триммер видео vd1. Принимает параметры input_dir - директория для сохранения видео, interval - интервал для обрезки аудио/видео в формате "hh:mm:ss".
+    # Если нужен только 1 кусок видео, то добавьте в класс vcut параметры start_time = "hh:mm:ss" (начало кадра для обрезки видео) и end_time = "hh:mm:ss" (конец кадра для обрезки видео) 
     # video_trimmer = vcut(input_dir=input_dir, interval=interval)
     # video_trimmer.process_videos()
 
