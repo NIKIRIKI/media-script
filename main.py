@@ -21,10 +21,13 @@ def main():
 
     model_path = "..."
 
-    # Загрузчик видео. Принимает параметры urls - ссылки на видео и output_dir - директория для сохранения видео
+    # Загрузчик видео vd1. Принимает параметры urls - ссылки на видео и output_dir - директория для сохранения видео.
+    # Если не работает первый загрузчик видео, то поменяйте vd1 на vd2
     # video_downloader = vd1(urls=urls, output_dir=output_dir)
     # video_downloader.download_videos()
 
+    # Триммер видео vd1. Принимает параметры urls - ссылки на видео и output_dir - директория для сохранения видео.
+    # Если не работает первый загрузчик видео, то поменяйте vd1 на vd2
     # video_trimmer = vcut(input_dir=output_dir, interval=interval)
     # video_trimmer.process_videos()
 
