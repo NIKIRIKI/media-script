@@ -2,9 +2,9 @@ import os
 import yt_dlp
 
 class VideoDescriptionDownloader:
-    def __init__(self, urls, output_dir):
+    def __init__(self, urls, input_dir):
         self.urls = urls
-        self.output_dir = output_dir
+        self.input_dir = input_dir
 
     def download_all_descriptions(self):
         try:
@@ -15,7 +15,7 @@ class VideoDescriptionDownloader:
 
     def download_url_content(self, url, i):
         try:
-            url_dir = os.path.join(self.output_dir, f'input_description_{i}')
+            url_dir = os.path.join(self.input_dir, f'input_description_{i}')
             os.makedirs(url_dir, exist_ok=True)
             self.download_description(url, url_dir)
             self.download_title(url, url_dir)
