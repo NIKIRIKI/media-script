@@ -1,13 +1,9 @@
-os
 logging
 pathlib
-concurrent.futures
 ffmpeg-python
 yt_dlp
-json
 vosk
 tqdm
-speech_recognition
+SpeechRecognition
 moviepy
 requests
-subprocess
