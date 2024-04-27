@@ -54,7 +54,7 @@ def main():
 
     # Загрузчик текста vdd. Принимает параметры input_dir - директория для сохранения текстовой информации о видео, urls - ссылки на видеоматериалы.
     # text_description = vdd(input_dir=input_dir, urls=urls)
-       #text_description.download_all_descriptions()
+    # text_description.download_all_descriptions()
 
     # Загрузчик превью td. Принимает параметры input_dir - директория для сохранения изображения, urls - ссылки на видеоматериалы.
     # image_preview = td(input_dir=input_dir, urls=urls)
