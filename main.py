@@ -14,8 +14,8 @@ from text_scripts.get_description import VideoDescriptionDownloader as vdd
 
 def main():
     interval = "00:00:20" # Интервал для обрезки аудио/видео в формате "hh:mm:ss".(Обрезает целое видео на несколько маленьких кусочков).
-    input_dir = "..." # Путь к директории для сохранения результатов.
-    urls = ["...", "..."] # Ссылки на видео.
+    input_dir = "C:/Users/user/Videos/course/video_1/" # Путь к директории для сохранения результатов.
+    urls = ["https://www.youtube.com/shorts/582vCs_i8tU"] # Ссылки на видео.
 
     model_path = "..." # Путь к языковым моделям vosk для работы аудио транскрибатора (atc2).
 
@@ -45,6 +45,11 @@ def main():
     # Для работы нужно предварительно скачать аудиоматериал через загрузчик аудио ad.
     # audio_trimmer = acut(input_dir=input_dir, interval=interval)
     # audio_trimmer.process_audios()
+
+    # Конвертер аудио ac. Принимает параметры input_dir - директория для конвертации аудио, output_audio_format - формат для конвертации аудио.
+    # Для работы нужно предварительно скачать аудиоматериал через загрузчик видео ad.
+    # audio_converter = ac(input_dir=input_dir, output_audio_format = "wav")
+    # audio_converter.convert_audio()
 
     # Транскрибатор аудио atc1. Принимает параметры input_dir - директория для транскрибации аудио.
     # Для работы нужно предварительно скачать аудиоматериал через загрузчик аудио ad.
