@@ -18,9 +18,14 @@ from text_scripts.subtitles_translate import SubtitleTranslator as st
 
 def main():
     interval = "03:00:00" # Интервал для обрезки аудио/видео в формате "hh:mm:ss".(Обрезает целое видео на несколько маленьких кусочков).
-    input_dir = "C:/Users/user/Videos/course/bash" # Путь к директории для сохранения результатов.
+    input_dir = "C:/Users/user/Videos/course/test" # Путь к директории для сохранения результатов.
     input_dir2 = "..." # Путь к директории изображений
-    urls = ["https://youtu.be/tK9Oc6AEnR4?si=yDkz9pe3N7xayRKp"] # Ссылки на видео.
+    # The variable `input_dir3` is storing the directory path where the text descriptions of the videos
+    # will be saved. In this case, it is set to `"C:/Users/user/Videos/course/test/input_description_0"`.
+    # This directory will be used by the `VideoDescriptionDownloader` class to save the text information
+    # about the videos downloaded from the specified URLs.
+    input_dir3 = "C:/Users/user/Videos/course/test/input_description_0"
+    urls = ["https://www.youtube.com/watch?v=gSUdv8n1q4A"] # Ссылки на видео.
     urls2 = ["...", "..."] # Ссылки на изображения
 
     model_path = "..." # Путь к языковым моделям vosk для работы аудио транскрибатора (atc2).""
@@ -64,8 +69,8 @@ def main():
     # audio_transcribed.convert_audio_to_text()
 
     # Загрузчик текста vdd. Принимает параметры input_dir - директория для сохранения текстовой информации о видео, urls - ссылки на видеоматериалы.
-    text_description = vdd(input_dir=input_dir, urls=urls)
-    text_description.download_all_descriptions()
+    # text_description = vdd(input_dir=input_dir, urls=urls)
+    # text_description.download_all_descriptions()
 
     # Переводчик субтитров st. Принимает параметры input_dir - директория для сохранения текстовой информации о видео, to_lang = Выбор языка.
     # subtitles_translate = st(input_dir=input_dir3, to_lang="ru")
