@@ -1,0 +1,13 @@
+logging
+pathlib
+ffmpeg-python
+yt_dlp
+vosk
+tqdm
+SpeechRecognition
+moviepy
+requests
+pyshorteners
+pillow
+translate
+langdetect
