@@ -51,7 +51,6 @@ class VideoDescriptionDownloader:
                 print(f"Error shortening URL {url}: {str(e)}")
         return text
 
-
     def download_title(self, url, url_dir):
         try:
             ydl_opts = {
@@ -74,9 +73,10 @@ class VideoDescriptionDownloader:
                 'writeautomaticsub': True,
                 'subtitleslangs': ['en'],
                 'subtitlesformat': 'vtt',
-                'outtmpl': os.path.join(url_dir, 'subtitles.vtt')
+                'outtmpl': os.path.join(url_dir, 'subtitles.%(ext)s')
             }
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
         except Exception as e:
             print(f"Error in download_subtitles: {str(e)}")
+
