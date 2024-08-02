@@ -22,7 +22,7 @@ class VideoDescriptionDownloader:
             os.makedirs(url_dir, exist_ok=True)
             self.download_description(url, url_dir)
             self.download_title(url, url_dir)
-            self.download_subtitles(url, url_dir)
+            self.download_subtitles(url, url_dir, i)
         except Exception as e:
             print(f"Error in download_url_content: {str(e)}")
 
@@ -65,18 +65,26 @@ class VideoDescriptionDownloader:
         except Exception as e:
             print(f"Error in download_title: {str(e)}")
 
-    def download_subtitles(self, url, url_dir):
+    def download_subtitles(self, url, url_dir, index):
         try:
             ydl_opts = {
                 'skip_download': True,
                 'writesubtitles': True,
                 'writeautomaticsub': True,
-                'subtitleslangs': ['en'],
                 'subtitlesformat': 'vtt',
-                'outtmpl': os.path.join(url_dir, 'subtitles.%(ext)s')
+                'outtmpl': os.path.join(url_dir, f'subtitles_{index}.%(ext)s')
             }
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
+            self.rename_subtitle_file(url_dir, index)
         except Exception as e:
             print(f"Error in download_subtitles: {str(e)}")
 
+    def rename_subtitle_file(self, url_dir, index):
+        try:
+            for file in os.listdir(url_dir):
+                if file.startswith(f'subtitles_{index}') and file.endswith('.vtt'):
+                    os.rename(os.path.join(url_dir, file), os.path.join(url_dir, f'subtitles_{index}.vtt'))
+                    break
+        except Exception as e:
+            print(f"Error in rename_subtitle_file: {str(e)}")
