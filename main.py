@@ -18,7 +18,7 @@ from text_scripts.subtitles_translate import SubtitleTranslator as st
 
 def main():
     interval = "03:00:00" # Интервал для обрезки аудио/видео в формате "hh:mm:ss".(Обрезает целое видео на несколько маленьких кусочков).
-    input_dir = "C:/Users/user/Videos/course/bash" # Путь к директории для сохранения результатов.
+    input_dir = "/home/mcniki/Videos/bash/" # Путь к директории для сохранения результатов.
     input_dir2 = "..." # Путь к директории изображений
     urls = ["https://youtu.be/tK9Oc6AEnR4?si=yDkz9pe3N7xayRKp"] # Ссылки на видео.
     urls2 = ["...", "..."] # Ссылки на изображения
@@ -27,8 +27,8 @@ def main():
 
     # Загрузчик видео vd1. Принимает параметры urls - ссылки на видео и input_dir - директория для сохранения видео.
     # Если не работает первый загрузчик видео, то поменяйте vd1 на vd2.
-    # video_downloader = vd1(urls=urls, input_dir=input_dir)
-    # video_downloader.download_videos()
+    video_downloader = vd1(urls=urls, input_dir=input_dir)
+    video_downloader.download_videos()
 
     # Триммер видео vcut. Принимает параметры input_dir - директория для обрезки видео, interval - интервал для обрезки аудио/видео в формате "hh:mm:ss".
     # Если нужен только 1 кусок видео, то добавьте в класс vcut параметры start_time = "hh:mm:ss" (начало кадра для обрезки видео) и end_time = "hh:mm:ss" (конец кадра для обрезки видео).
@@ -64,8 +64,8 @@ def main():
     # audio_transcribed.convert_audio_to_text()
 
     # Загрузчик текста vdd. Принимает параметры input_dir - директория для сохранения текстовой информации о видео, urls - ссылки на видеоматериалы.
-    text_description = vdd(input_dir=input_dir, urls=urls)
-    text_description.download_all_descriptions()
+    # text_description = vdd(input_dir=input_dir, urls=urls)
+    # text_description.download_all_descriptions()
 
     # Переводчик субтитров st. Принимает параметры input_dir - директория для сохранения текстовой информации о видео, to_lang = Выбор языка.
     # subtitles_translate = st(input_dir=input_dir3, to_lang="ru")
