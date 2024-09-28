@@ -31,6 +31,9 @@
 
 _pip install -r requirements.txt_
 
+* Примечание: Если вы работаете на Arch подобном дистрибутиве Linux, то вам надо запустить установочный скрипт install_arch_dist.sh Через терминал.
+./install_arch_dist.sh
+
 
 4. Использование скрипта:
 
