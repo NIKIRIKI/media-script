@@ -58,5 +58,13 @@ class VideoCutter:
         with ThreadPoolExecutor() as executor:
             for i in range(10):
                 video_dir = self.input_dir / f'input_video_{i}'
-                video_path = next(video_dir.glob('*'))  # Get the first file in the directory
-                executor.submit(self.cut_video, video_path, video_dir)
+                try:
+                    # Attempt to get the first video file in the directory
+                    video_path = next(video_dir.glob('*'))  # Get the first file in the directory
+                    executor.submit(self.cut_video, video_path, video_dir)
+                except StopIteration:
+                    logging.warning(f"No video files found in: {video_dir}")
+                    continue
+                except Exception as e:
+                    logging.error(f"An error occurred while processing {video_dir}: {e}")
+
